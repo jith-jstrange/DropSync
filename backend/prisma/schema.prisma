@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  connections   Connection[]
+  syncLogs      SyncLog[]
+}
+
+model Connection {
+  id                 String   @id @default(cuid())
+  userId             String
+  type               String
+  displayName        String
+  shopDomain         String?
+  siteUrl            String?
+  encryptedToken     String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id])
+  webhooks           Webhook[]
+}
+
+model Webhook {
+  id            String   @id @default(cuid())
+  connectionId  String
+  topic         String
+  targetUrl     String
+  createdAt     DateTime @default(now())
+  connection    Connection @relation(fields: [connectionId], references: [id])
+}
+
+model SyncLog {
+  id          String   @id @default(cuid())
+  userId      String
+  level       String
+  message     String
+  details     String?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+}
